@@ -1,0 +1,213 @@
+<template>
+  <div class="tutorial-page">
+    <tabs onchange="onChangeTabIndex">
+      <tab-bar class="tab-bar" mode="scrollable">
+        <text
+          for="{{tabHeadList}}"
+          class="{{currentIndex === $idx ? 'active' : ''}}"
+          @click="getInfo($item.title)"
+          >{{ $item.title }}</text
+        >
+      </tab-bar>
+      <tab-content class="tab-content">
+        <div class="tab-content-section" for="{{tabHeadList}}">
+          <div class="title">
+            <!-- 初始化时，if为false，默认不渲染；页签被首次点击时，对应页签内容的if由false改为true -->
+            <text if="{{$item.render}}">{{ $item.title }}</text>
+            <!-- <text>数据{{ data }}</text> -->
+          </div>
+          <div class="list">
+            <!-- 列表的实现 -->
+            <!-- 列表实现，监听列表的scrollbottom事件，列表滚动到底部时加载更多数据 -->
+            <list class="tutorial-page" onscrollbottom="renderMoreListItem">
+              <!-- 商品列表 -->
+              <block for="data">
+                <list-item type="product" class="content-item">
+                  <div class="text-wrap">
+                    <div class="top-line">
+                      <!-- <text class="text-name">mingzi{{ $item.name }}</text> -->
+                      <text class="text-title">{{ $item.title }}</text>
+                    </div>
+                    <text class="bottom-line">{{ $item.desc }}</text>
+                  </div>
+                  <image class="img" src="{{$item.cover_img}}"></image>
+                </list-item>
+              </block>
+
+              <list-item type="loadStatus" class="load-status">
+                <progress type="circular" show="{{hasMoreData}}"></progress>
+                <text show="{{hasMoreData}}">加载更多</text>
+                <text show="{{!hasMoreData}}">没有更多了~</text>
+              </list-item>
+            </list>
+          </div>
+        </div>
+      </tab-content>
+    </tabs>
+  </div>
+</template>
+
+<script>
+import fetch from '@system.fetch'
+export default {
+  private: {
+    tabHeadList: [
+      { title: '饮食与休闲', render: false, data: '' },
+      { title: '艺术与娱乐', render: false, data: '' },
+      { title: '健康', render: false, data: '' },
+      { title: '教育与交流', render: false, data: '' },
+      { title: '运动与保健', render: false, data: '' },
+      { title: '旅行', render: false, data: '' },
+      { title: '工作', render: false, data: '' },
+      { title: '军事', render: false, data: '' },
+      { title: '家居与园艺', render: false, data: '' },
+    ],
+    currentIndex: 0,
+    data: [],
+    hasMoreData: false,
+    nowTitle: '',
+  },
+  onInit() {
+    this.$page.setTitleBar({ text: '面试题' })
+    // 获取数据并渲染列表
+    // this.onShow()
+  },
+  // onShow() {
+  //   setTimeout(() => {
+  //     this.$page.hideSkeleton()
+  //   }, 1500)
+  // },
+  /**
+   * 修改列表中对应索引的数据项
+   * @param index
+   */
+  modifyListItemData(index) {
+    this.tabHeadList[index].render = true
+  },
+  /**
+   * 监听tabs组件index的改变，index默认为0
+   * @param evt
+   */
+  onChangeTabIndex(evt) {
+    // console.log("调用方法",evt.index)
+    this.currentIndex = evt.index
+    this.modifyListItemData(evt.index)
+    this.getInfo(this.tabHeadList[evt.index].title)
+  },
+  // 请求主体内容
+  getInfo(title) {
+    // this.onShow()
+    // console.log("调用方法", title)
+    this.nowTitle = title
+    var that = this
+    fetch.fetch({
+      url: 'https://wikihow.xiaozuowen.net/categories/' + title + '?size=10',
+      responseType: 'json',
+      success: function (response) {
+        // console.log(response.data.list[0])
+        that.data = response.data.list
+      },
+      fail: function (data, code) {
+        console.log(`handling fail, errMsg = ${data}`)
+        console.log(`handling fail, errCode = ${code}`)
+      }
+    })
+  },
+  _renderList() {
+    this.hasMoreData = true
+    // 渲染列表
+    console.log("加载更多数据")
+    //请求更多数据 往data  里面添加
+    // console.log("当前table", this.nowTitle)
+    let title = this.nowTitle
+    let that = this
+    fetch.fetch({
+      url: 'https://wikihow.xiaozuowen.net/categories/' + title + '?size=10',
+      responseType: 'json',
+      success: function (response) {
+        // console.log("新增的数据",response.data.list[0])
+        that.data = that.data.concat(response.data.list)
+        // console.log("新增的数据",that.data)
+        that.hasMoreData = false
+      },
+      fail: function (data, code) {
+        console.log(`handling fail, errMsg = ${data}`)
+        console.log(`handling fail, errCode = ${code}`)
+      }
+    })
+  },
+  /**
+     * 滑动到底部时加载更多
+     */
+  renderMoreListItem() {
+    if (!this.isLoadingData) {
+      this._renderList()
+    }
+  }
+}
+</script>
+
+<style>
+.text-wrap {
+  width: 70%;
+  height: 200px;
+  border: 1px solid #000000;
+  padding: 5px;
+}
+/* 定义图片样式 */
+.img {
+  width: 200px;
+  height: 200px;
+  padding: 5px;
+  margin: 0 10px 0 0;
+}
+.tutorial-page {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.tab-bar text {
+  padding: 0 25px;
+  text-align: center;
+  font-size: 34px;
+}
+.tab-bar .active {
+  color: #ff0000;
+}
+.tab-content {
+  /* flex: 1; */
+  background-color: #eeeeee;
+}
+.tab-content-section {
+  /* flex: 1; */
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+  background-color: #ffffff;
+  /* justify-content: center; */
+}
+.tab-content-section text {
+  text-align: center;
+  color: #ff0000;
+}
+.title {
+  border: 1px solid #000000;
+  justify-content: center;
+}
+.list {
+  border: 1px solid #000000;
+  justify-content: center;
+}
+.list .content-item .text-wrap {
+  flex-direction: column;
+}
+.list .text-title {
+  lines: 2;
+  text-align: right;
+}
+/* 设置省略几个 */
+.list .tutorial-page .bottom-line {
+  lines: 2;
+  text-overflow: ellipsis;
+}
+</style>
