@@ -151,8 +151,11 @@ export default {
 .text-wrap {
   width: 70%;
   height: 200px;
-  border: 1px solid #000000;
   padding: 5px;
+}
+.content-item{
+  margin: 10px 0;
+  border-bottom: 6px solid #645f5f;
 }
 /* 定义图片样式 */
 .img {
@@ -191,11 +194,13 @@ export default {
   color: #ff0000;
 }
 .title {
-  border: 1px solid #000000;
+  /* border: 1px solid #000000; */
   justify-content: center;
 }
 .list {
-  border: 1px solid #000000;
+  /* border-bottom: 1px solid #000000; */
+  margin: 5px;
+  padding: 10px;
   justify-content: center;
 }
 .list .content-item .text-wrap {
@@ -207,7 +212,7 @@ export default {
 }
 /* 设置省略几个 */
 .list .tutorial-page .bottom-line {
-  lines: 2;
+  lines: 3;
   text-overflow: ellipsis;
 }
 </style>
